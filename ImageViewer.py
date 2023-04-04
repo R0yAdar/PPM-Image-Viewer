@@ -29,7 +29,7 @@ class MainWindow(QMainWindow):
         self.image_page = Page2()
         self.stackedScreen.addWidget(self.image_page)
 
-        self.image_page.back.connect(lambda: self.stackedScreen.setCurrentIndex(0))
+        self.image_page.back.connect(self.going_back)
 
         self.container.setLayout(self.main_layout)
 
@@ -37,6 +37,12 @@ class MainWindow(QMainWindow):
     def show_image(self, image_path: str):
         if self.image_page.set_image(image_path):
             self.stackedScreen.setCurrentIndex(1)
+    @pyqtSlot()
+    def going_back(self):
+        self.image_page.set_image('')
+        self.stackedScreen.setCurrentIndex(0)
+        self.resize(self.baseSize())
+
 
 class Page2(QWidget):
     back = pyqtSignal()
@@ -60,13 +66,23 @@ class Page2(QWidget):
         self.setLayout(layout)
     
     def set_image(self, image_path: str) -> bool:
-        try:
-            image = QImage(image_path)
-            self.image.setPixmap(QPixmap().fromImage(image))
+        if image_path == '':
+            self.image.setText('IMAGE')
             return True
-        except:
+        
+        image = QImage(image_path)
+        if image == None:
             QMessageBox.critical(self, 'Invalid Image', 'Cannot Load This Image')
             return False
+        
+        if image.size().height() > 720:
+            image = image.scaledToHeight(720)
+        if image.size().width() > 1280:
+            image = image.scaledToWidth(720)
+
+        self.image.setPixmap(QPixmap().fromImage(image))
+        return True
+        
 
             
 class Page1(QWidget):
@@ -89,7 +105,8 @@ class Page1(QWidget):
 
     def handle_photo_selection(self):
         path, _ = QFileDialog(self).getOpenFileName(filter='Images (*.bmp *.gif *.jpg *.png *.pbm *.pgm *.ppm *.xbm *xpm)')
-        self.view_requested.emit(path)
+        if path:
+            self.view_requested.emit(path)
 
 
 if __name__ == '__main__':
