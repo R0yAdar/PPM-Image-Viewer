@@ -6,4 +6,4 @@ It's really simple, and it only supports showing images at
 the moment with no intention of higher level functions like
 scaling, etc.
 
-There's an .exe for windows x64.
+You can use pyinstaller to make an .exe out of it.
